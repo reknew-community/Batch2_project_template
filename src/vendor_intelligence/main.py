@@ -1,34 +1,22 @@
-"""Main application entry point."""
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from datetime import datetime
+from vendor_intelligence.database import get_db
+from vendor_intelligence.services.vendor_performance_engine import calculate_vendor_performance
 
-import logging
-import sys
-from pathlib import Path
+app = FastAPI()
 
-# Add src to path for development
-sys.path.append(str(Path(__file__).parent.parent))
-
-from src.config.settings import settings
-from src.utils.logger import setup_logging
-
-# Setup logging
-setup_logging()
-logger = logging.getLogger(__name__)
-
-
-def main():
-    """Main application function."""
-    logger.info(f"Starting {settings.APP_NAME} v{settings.VERSION}")
-    logger.info(f"Environment: {settings.APP_ENV}")
-    
-    # Your application logic here
-    print(f"🚀 {settings.APP_NAME} is running!")
-    print(f"Environment: {settings.APP_ENV}")
-    print(f"Debug mode: {settings.DEBUG}")
-    
-    # Example: Start web server if this is a web application
-    if hasattr(settings, 'PORT'):
-        print(f"Server would start on port {settings.PORT}")
-
-
-if __name__ == "__main__":
-    main()
+@app.get("/vendors/{vendor_id}/performance")
+async def get_vendor_performance(
+    vendor_id: int,
+    start_date: datetime,
+    end_date: datetime,
+    db: Session = Depends(get_db)
+):
+    result = await calculate_vendor_performance(
+        vendor_id=vendor_id,
+        start_date=start_date,
+        end_date=end_date,
+        db=db
+    )
+    return result

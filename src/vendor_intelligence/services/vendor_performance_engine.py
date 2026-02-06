@@ -26,35 +26,35 @@ async def calculate_vendor_performance(
         calculate_ontime_delivery_rate(vendor_id, start_date, end_date, db),
         
         # Cost per Kg - Trilok
-        calculate_cost_competitiveness(vendor_id, start_date, end_date, db),
+        #calculate_cost_competitiveness(vendor_id, start_date, end_date, db),
         
         #Exception Rate - Siva
-        calculate_exception_rate(vendor_id, start_date, end_date, db),
+        #calculate_exception_rate(vendor_id, start_date, end_date, db),
         
         #POD Compliance - Harish
-        calculate_pod_compliance_rate(vendor_id, start_date, end_date, db),
+        #calculate_pod_compliance_rate(vendor_id, start_date, end_date, db),
 
         #Capacity Utilization - Venu
-        calculate_capacity_utilization_rate(vendor_id, start_date, end_date, db)
+        #calculate_capacity_utilization_rate(vendor_id, start_date, end_date, db)
 
     )
     
     # Unpack results from each calculator
     pickup_result = results[0]
     delivery_result = results[1]
-    cost_result = results[2]
-    exception_result = results[3]
-    pod_result = results[4]  
-    capacity_result = results[5]
+    #cost_result = results[2]
+    #exception_result = results[3]
+    #pod_result = results[4]  
+    #capacity_result = results[5]
 
 #Extracting Scores from Each Calculator
     
     pickup_score = pickup_result.get('score', 0.0)
     delivery_score = delivery_result.get('score', 0.0)
-    cost_score = cost_result.get('score', 0.0)
-    exception_score = exception_result.get('score', 0.0)
-    capacity_score = capacity_result.get('score', 0.0)
-    pod_score = pod_result.get('score', 0.0)
+    #cost_score = cost_result.get('score', 0.0)
+    #exception_score = exception_result.get('score', 0.0)
+    #capacity_score = capacity_result.get('score', 0.0)
+   # pod_score = pod_result.get('score', 0.0)
    
     
     # Get weights from config
@@ -67,10 +67,10 @@ async def calculate_vendor_performance(
     # Calculate weighted final score
     final_score = (
         delivery_score * w_delivery +
-        cost_score * w_cost +
-        exception_score * w_exception +
-        capacity_score * w_capacity + 
-        pod_score * w_pod
+        0 * w_cost +
+        0 * w_exception +
+        0 * w_capacity + 
+        0 * w_pod
     )
     
     # STEP 5: Build Scorecard Response
@@ -83,13 +83,15 @@ async def calculate_vendor_performance(
         'individual_scores': {
             'ontime_pickup': pickup_score,
             'ontime_delivery': delivery_score,
-            'cost_competitiveness': cost_score,
-            'exception_rate': exception_score,
-            'pod_compliance': pod_score,
-            'capacity_utilization': capacity_score
+            'cost_competitiveness': 0,
+            'exception_rate': 0,
+            'pod_compliance': 0,
+            'capacity_utilization': 0
         },
         'Vendor_Performance_Score': round(final_score, 2),
         'calculated_at': datetime.now().isoformat()
     }
     
     return scorecard
+
+

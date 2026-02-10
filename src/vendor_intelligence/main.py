@@ -1,11 +1,26 @@
 from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, time
 from typing import Optional
 from vendor_intelligence.database import get_db
 from vendor_intelligence.services.vendor_performance_engine import calculate_vendor_performance
 
 app = FastAPI()
+
+def normalize_date_range(start_date, end_date):
+    """
+    Convert plain date inputs to datetime range:
+    - start_date -> 00:00:00
+    - end_date   -> 23:59:59.999999
+    If inputs are already datetime, keep them unchanged.
+    """
+    if isinstance(start_date, date) and not isinstance(start_date, datetime):
+        start_date = datetime.combine(start_date, time.min)
+
+    if isinstance(end_date, date) and not isinstance(end_date, datetime):
+        end_date = datetime.combine(end_date, time.max)
+
+    return start_date, end_date
 
 @app.get("/vendors/{vendor_id}/performance")
 async def get_vendor_performance(
@@ -20,6 +35,8 @@ async def get_vendor_performance(
     
     if start_date is None:
         start_date = end_date - timedelta(days=30)
+
+    start_date, end_date = normalize_date_range(start_date, end_date)
 
     # Validate date range
     if start_date > end_date:

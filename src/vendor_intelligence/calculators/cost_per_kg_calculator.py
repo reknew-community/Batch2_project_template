@@ -15,7 +15,7 @@ async def get_cost_per_kg(
             SELECT 
                 SUM(total_cost) AS aggr_total_cost,
                 SUM(weight_kg) AS aggr_weight_kg
-            FROM trips_test
+            FROM shipments
             WHERE vendor_id = :vendor_id
               AND booking_date >= :start_date
               AND booking_date <= :end_date
@@ -26,7 +26,7 @@ async def get_cost_per_kg(
             SELECT 
                 SUM(total_cost) AS aggr_total_cost,
                 SUM(weight_kg) AS aggr_weight_kg
-            FROM trips_test
+            FROM shipments
             WHERE booking_date >= :start_date
               AND booking_date <= :end_date
         """)
@@ -78,8 +78,8 @@ async def get_cost_per_kg(
             cost_competitiveness_score = 100
         elif cost_ratio <= 1.0:
             cost_competitiveness_score = 75 + (1.0 - cost_ratio) * 125
-        elif cost_ratio <= 1.2:
-            cost_competitiveness_score = 75 - (cost_ratio - 1.0) * 375
+        elif cost_ratio <= 1.5:
+            cost_competitiveness_score = 75 - (cost_ratio - 1.0) * 120
         else:
             cost_competitiveness_score = 0
 

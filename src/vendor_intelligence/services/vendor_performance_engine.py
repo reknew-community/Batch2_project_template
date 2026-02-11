@@ -79,10 +79,10 @@ async def calculate_vendor_performance(
         'individual_scores': {
             'ontime_pickup': pickup_score,
             'ontime_delivery': delivery_score,
-            'cost_competitiveness': 0,
-            'exception_rate': 0,
-            'pod_compliance': 0,
-            'capacity_utilization': 0
+            'cost_competitiveness': cost_score,
+            'exception_rate': exception_score,
+            'pod_compliance': pod_score,
+            'capacity_utilization': capacity_score
         },
         'Vendor_Performance_Score': round(final_score, 2),
         'calculated_at': datetime.now().isoformat()

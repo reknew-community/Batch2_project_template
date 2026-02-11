@@ -11,5 +11,6 @@ async def calculate_capacity_utilization_rate(
     end_date: datetime,
     db: Session
 ) -> Dict[str, Any]:
+    score = 0.0
 
-    return '' 
+    return {'score': round(score, 2)}

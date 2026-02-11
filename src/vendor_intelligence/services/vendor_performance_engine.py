@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, Any
 import asyncio
 from vendor_intelligence.core.config import settings
@@ -40,15 +40,12 @@ async def calculate_vendor_performance(
     )
     
     # Unpack results from each calculator
-    pickup_result = results[0]
-    delivery_result = results[1]
-    cost_result = results[2]
-    exception_result = results[3]
-    pod_result = results[4]  
-    capacity_result = results[5]
+    # We expect 6 values in results (pickup, delivery, cost, exception, pod, capacity).
+    # To avoid errors when results has less than 6 items, we add default None values.
+    # Then we take only the first 6 items and unpack them into variables safely.
+    pickup_result, delivery_result, cost_result,exception_result, pod_result, capacity_result = (results + [None]*6)[:6]
 
-#Extracting Scores from Each Calculator
-    
+    #Extracting Scores from Each Calculator
     pickup_score = pickup_result.get('score', 0.0)
     delivery_score = delivery_result.get('score', 0.0)
     cost_score = cost_result.get('score', 0.0)
@@ -56,7 +53,6 @@ async def calculate_vendor_performance(
     capacity_score = capacity_result.get('score', 0.0)
     pod_score = pod_result.get('score', 0.0)
    
-    
     # Get weights from config
     w_delivery = settings.WEIGHT_ONTIME_DELIVERY          # 0.30 (30%)
     w_cost = settings.WEIGHT_COST_COMPETITIVENESS         # 0.25 (25%)
@@ -90,6 +86,7 @@ async def calculate_vendor_performance(
         },
         'Vendor_Performance_Score': round(final_score, 2),
         'calculated_at': datetime.now().isoformat()
-    }
-    
+    }  
     return scorecard
+
+

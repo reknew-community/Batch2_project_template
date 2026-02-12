@@ -102,4 +102,12 @@ async def calculate_cost_competitiveness(
         }
 
     except Exception as e:
-        raise  
+        return {
+            "vendor_id": vendor_id,
+            "metric": "cost_per_kg",
+            "score": 0.0,
+            "raw_data": None,
+            "error": str(e),
+            "calculated_at": datetime.now().isoformat(),
+            "success": False
+        }

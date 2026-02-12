@@ -3,7 +3,7 @@ from sqlalchemy import text
 from datetime import datetime
 from typing import Dict, Any
 
-async def get_cost_per_kg(
+async def calculate_cost_competitiveness(
     vendor_id: int,
     start_date: datetime,
     end_date: datetime,
@@ -13,18 +13,18 @@ async def get_cost_per_kg(
     try:
         query = text("""
             SELECT 
-                SUM(total_cost) AS aggr_total_cost,
+                SUM(actual_cost) AS aggr_total_cost,
                 SUM(weight_kg) AS aggr_weight_kg
             FROM shipments
-            WHERE vendor_id = :vendor_id
+            WHERE assigned_vendor_id = :vendor_id
               AND booking_date >= :start_date
               AND booking_date <= :end_date
-            GROUP BY vendor_id
+            GROUP BY assigned_vendor_id
         """)
 
         query_market_rate = text("""
             SELECT 
-                SUM(total_cost) AS aggr_total_cost,
+                SUM(actual_cost) AS aggr_total_cost,
                 SUM(weight_kg) AS aggr_weight_kg
             FROM shipments
             WHERE booking_date >= :start_date

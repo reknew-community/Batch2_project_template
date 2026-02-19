@@ -22,7 +22,7 @@ async def calculate_vendor_performance(
         #On-time Pickup - Venu
         calculate_ontime_pickup_rate(vendor_id, start_date, end_date, db),
         
-        # On-time Delivery - Harika
+        # On-time Delivery - Venu
         calculate_ontime_delivery_rate(vendor_id, start_date, end_date, db),
         
         # Cost per Kg - Trilok
@@ -34,7 +34,7 @@ async def calculate_vendor_performance(
         #POD Compliance - Harish
         calculate_pod_compliance_rate(vendor_id, start_date, end_date, db),
 
-        #Capacity Utilization - Venu
+        #Capacity Utilization - Trilok
         calculate_capacity_utilization_rate(vendor_id, start_date, end_date, db)
 
     )

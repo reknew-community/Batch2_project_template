@@ -12,21 +12,12 @@ async def calculate_pod_compliance_rate(
     try:
         # Step 1: Query database for ALL delivered shipments
         sql = text("""
-            SELECT 
-                id,
-                awb_id,
-                assigned_vendor_id,
-                actual_delivery_date,
-                current_status,
-                pod_uploaded,
-                pod_upload_timestamp,
-                signature_obtained
-            FROM shipments
-            WHERE assigned_vendor_id = :vendor_id
-            AND current_status = 'DELIVERED'
-            AND actual_delivery_date >= :start_date
-            AND actual_delivery_date <= :end_date
-        """)
+                   SELECT COUNT(*) AS total_deliveries,
+                   SUM(CASE WHEN s.pod_uploaded = 1 THEN 1 ELSE 0 END) AS pod_compliant_deliveries
+                   FROM shipments s
+                   WHERE s.assigned_vendor_id = :vendor_id
+                   AND s.current_status = 'DELIVERED'
+                   AND s.actual_delivery_date BETWEEN :start_date AND :end_date""")
 
         # Execute query and get all rows
         shipments = db.execute(sql, {
@@ -35,28 +26,18 @@ async def calculate_pod_compliance_rate(
             "end_date": end_date
         }).fetchall()
 
-        # Step 2: Count total delivered shipments
-        total_delivered = len(shipments)
-        # Example: 150 shipments
-
-        # Step 3: Count POD uploaded (where pod_uploaded = 1)
-        pod_uploaded = sum(
-            1 for shipment in shipments
-            if shipment.pod_uploaded == 1
-        )
-
-        # Example: 143 shipments have POD
+        # Count total delivered shipments and Pod Compliant deliveries
+        total_delivered = int(shipments[0].total_deliveries or 0) if shipments else 0
+        pod_compliant_deliveries = int(shipments[0].pod_compliant_deliveries or 0) if shipments else 0
 
         # Step 4: Calculate POD missing
-        pod_missing = total_delivered - pod_uploaded
-        # Example: 150 - 143 = 7 missing
+        pod_missing = total_delivered - pod_compliant_deliveries
 
         # Step 5: Calculate POD compliance percentage
         if total_delivered > 0:
-            score = (pod_uploaded / total_delivered) * 100
+            score = (pod_compliant_deliveries / total_delivered) * 100
         else:
             score = 0.0
-        # Example: (143 / 150) * 100 = 95.33%
 
         # Step 6: Return formatted result
         return {
@@ -65,7 +46,7 @@ async def calculate_pod_compliance_rate(
             'score': round(score, 2),
             'raw_data': {
                 'total_delivered': total_delivered,
-                'pod_uploaded': pod_uploaded,
+                'pod_compliant_deliveries': pod_compliant_deliveries,
                 'pod_missing': pod_missing,
                 'pod_compliance_rate': round(score, 2),
                 'period': {

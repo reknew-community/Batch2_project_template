@@ -5,39 +5,11 @@ from typing import Dict, Any
 
 
 async def calculate_capacity_utilization_rate(
-    vendor_id: int,
-    start_date: datetime,
-    end_date: datetime,
-    db: Session
+    total_vehicle_capacity: float,
+    total_actual_load: float
 ) -> Dict[str, Any]:
 
     try:
-        query = text("""
-            SELECT 
-                COALESCE(SUM(t.vehicle_capacity_kg), 0) AS total_vehicle_capacity,
-                COALESCE(SUM(t.actual_load_kg), 0) AS total_actual_load
-            FROM trips t
-            WHERE t.vendor_id = :vendor_id
-            AND t.scheduled_departure BETWEEN :start_date AND :end_date
-            AND t.status IN ('COMPLETED','IN_TRANSIT')
-            AND t.actual_departure IS NOT NULL
-            AND t.scheduled_departure IS NOT NULL
-        """)
-
-        result = db.execute(
-            query,
-            {
-                "vendor_id": vendor_id,
-                "start_date": start_date,
-                "end_date": end_date
-            }
-        ).fetchone()
-
-        if result is None:
-            raise ValueError("No data returned from database")
-
-        total_vehicle_capacity = result.total_vehicle_capacity or 0
-        total_actual_load = result.total_actual_load or 0
 
         # Validate negative values
         if total_vehicle_capacity < 0 or total_actual_load < 0:
@@ -46,16 +18,11 @@ async def calculate_capacity_utilization_rate(
         # Prevent division by zero
         if total_vehicle_capacity == 0:
             return {
-                "vendor_id": vendor_id,
                 "metric": "capacity_utilization_rate",
                 "score": 0.0,
                 "raw_data": {
                     "total_vehicle_capacity": total_vehicle_capacity,
                     "total_actual_load": total_actual_load,
-                    "period": {
-                        "start_date": start_date.isoformat(),
-                        "end_date": end_date.isoformat()
-                    }
                 },
                 "warning": "Total vehicle capacity is zero. Utilization set to 0.0",
                 "calculated_at": datetime.now().isoformat(),
@@ -66,16 +33,11 @@ async def calculate_capacity_utilization_rate(
         capacity_utilization_score = float(capacity_utilization_score*100);
 
         return {
-            "vendor_id": vendor_id,
             "metric": "capacity_utilization_rate",
-            "score": round(capacity_utilization_score, 4),
+            "score": round(capacity_utilization_score, 2),
             "raw_data": {
                 "total_vehicle_capacity": total_vehicle_capacity,
                 "total_actual_load": total_actual_load,
-                "period": {
-                    "start_date": start_date.isoformat(),
-                    "end_date": end_date.isoformat()
-                }
             },
             "calculated_at": datetime.now().isoformat(),
             "success": True
@@ -83,7 +45,6 @@ async def calculate_capacity_utilization_rate(
 
     except ZeroDivisionError:
         return {
-            "vendor_id": vendor_id,
             "metric": "capacity_utilization_rate",
             "score": 0.0,
             "raw_data": None,
@@ -94,7 +55,6 @@ async def calculate_capacity_utilization_rate(
 
     except ValueError as ve:
         return {
-            "vendor_id": vendor_id,
             "metric": "capacity_utilization_rate",
             "score": 0.0,
             "raw_data": None,
@@ -105,7 +65,6 @@ async def calculate_capacity_utilization_rate(
 
     except Exception as e:
         return {
-            "vendor_id": vendor_id,
             "metric": "capacity_utilization_rate",
             "score": 0.0,
             "raw_data": None,

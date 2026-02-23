@@ -9,6 +9,7 @@ from vendor_intelligence.calculators.cost_per_kg_calculator import calculate_cos
 from vendor_intelligence.calculators.exception_rate_calculator import calculate_exception_rate
 from vendor_intelligence.calculators.pod_compliance_calculator import calculate_pod_compliance_rate
 from vendor_intelligence.calculators.calculate_capacity_utilization_rate import calculate_capacity_utilization_rate
+from vendor_intelligence.database.get_vendor_parameters import get_vendor_parameters
 
 
 async def calculate_vendor_performance(
@@ -17,25 +18,49 @@ async def calculate_vendor_performance(
     end_date: datetime,
     db: Session
 ) -> Dict[str, Any]:
+    
+    vendor_parameters = get_vendor_parameters(vendor_id, start_date, end_date, db)
+
+    print(vendor_parameters)
 
     results = await asyncio.gather(
         #On-time Pickup - Venu
-        calculate_ontime_pickup_rate(vendor_id, start_date, end_date, db),
+        calculate_ontime_pickup_rate(
+            int(vendor_parameters[0].get('total_completed_trips')),
+            int(vendor_parameters[0].get('ontime_pickups'))
+            ),
         
         # On-time Delivery - Venu
-        calculate_ontime_delivery_rate(vendor_id, start_date, end_date, db),
+        calculate_ontime_delivery_rate(
+            int(vendor_parameters[0].get('total_completed_trips')),
+            int(vendor_parameters[0].get('ontime_deliveries'))
+            ),
         
         # Cost per Kg - Trilok
-        calculate_cost_competitiveness(vendor_id, start_date, end_date, db),
+        calculate_cost_competitiveness(
+            float(vendor_parameters[0].get('total_cost')), 
+            float(vendor_parameters[0].get('total_weight')), 
+            float(vendor_parameters[0].get('aggr_total_cost')),
+            float(vendor_parameters[0].get('aggr_weight_kg'))
+            ),
         
         #Exception Rate - Siva
-        calculate_exception_rate(vendor_id, start_date, end_date, db),
+        calculate_exception_rate(
+            int(vendor_parameters[0].get('total_shipments')),
+            int(vendor_parameters[0].get('exception_shipments'))
+            ),
         
         #POD Compliance - Harish
-        calculate_pod_compliance_rate(vendor_id, start_date, end_date, db),
+        calculate_pod_compliance_rate(
+            int(vendor_parameters[0].get('total_shipments')),
+            int(vendor_parameters[0].get('pod_compliant_shipments'))
+            ),
 
         #Capacity Utilization - Trilok
-        calculate_capacity_utilization_rate(vendor_id, start_date, end_date, db)
+        calculate_capacity_utilization_rate(
+            float(vendor_parameters[0].get('total_vehicle_capacity')), 
+            float(vendor_parameters[0].get('total_actual_load'))
+            )
 
     )
     

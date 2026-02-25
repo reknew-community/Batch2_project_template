@@ -8,7 +8,7 @@ async def calculate_exception_rate(
     exception_shipments: int
 ) -> Dict[str, Any]:
     try:
-        exception_rate = float((exception_shipments/total_shipments)*100)
+        exception_rate = float((1-(exception_shipments/total_shipments))*100)
 
         result = {
             "metric": "exception_rate",

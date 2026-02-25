@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import asyncio
 from vendor_intelligence.core.config import settings
 from vendor_intelligence.calculators.ontime_pickup_calculator import calculate_ontime_pickup_rate
@@ -13,15 +13,13 @@ from vendor_intelligence.database.get_vendor_parameters import get_vendor_parame
 
 
 async def calculate_vendor_performance(
-    vendor_id: int,
-    start_date: datetime,
-    end_date: datetime,
-    db: Session
+    vendor_id: Optional[int],
+    start_date: Optional[datetime],
+    end_date: Optional[datetime],
+    db: Optional[Session]
 ) -> Dict[str, Any]:
     
-    vendor_parameters = get_vendor_parameters(vendor_id, start_date, end_date, db)
-
-    print(vendor_parameters)
+    vendor_parameters = await get_vendor_parameters(vendor_id, start_date, end_date, db)
 
     results = await asyncio.gather(
         #On-time Pickup - Venu
@@ -100,6 +98,12 @@ async def calculate_vendor_performance(
         'calculation_period': {
             'start_date': start_date.isoformat(),
             'end_date': end_date.isoformat(),
+        },
+        'calculation_parameters': {
+            'total_trips': int(vendor_parameters[0].get('total_completed_trips')),
+            'ontime_pickups': int(vendor_parameters[0].get('ontime_pickups')),
+            'ontime_deliveries': int(vendor_parameters[0].get('ontime_deliveries')),
+            'total_exceptions': int(vendor_parameters[0].get('exception_shipments'))
         },
         'individual_scores': {
             'ontime_pickup': pickup_score,

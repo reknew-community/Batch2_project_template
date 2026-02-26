@@ -40,6 +40,7 @@ def insert_scores_into_vendor_performance_DB(
                 avg_cost_per_kg,
                 avg_cost_per_trip,
                 avg_capacity_utilization_pct,
+                pod_compliance_rate,
                 performance_score,
                 created_ts,
                 updated_ts
@@ -60,6 +61,7 @@ def insert_scores_into_vendor_performance_DB(
                 :avg_cost_per_kg,
                 :avg_cost_per_trip,
                 :avg_capacity_utilization_pct,
+                :pod_compliance_rate,
                 :performance_score,
                 :created_ts,
                 :updated_ts
@@ -82,6 +84,7 @@ def insert_scores_into_vendor_performance_DB(
             "avg_cost_per_kg": avg_cost_per_kg,
             "avg_cost_per_trip": avg_cost_per_trip,
             "avg_capacity_utilization_pct": avg_capacity_utilization_pct,
+            "pod_compliance_rate": pod_compliance_rate,
             "performance_score": performance_score,
             "created_ts": created_ts,
             "updated_ts": updated_ts,

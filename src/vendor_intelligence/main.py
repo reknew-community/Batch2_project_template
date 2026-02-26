@@ -5,10 +5,11 @@ from typing import Optional, List
 from vendor_intelligence.database import get_db
 from vendor_intelligence.services.vendor_performance_engine import calculate_vendor_performance
 from vendor_intelligence.services.job_scheduler_service import start_scheduler
-from contextlib import asynccontextmanager
 from vendor_intelligence.services.job_scheduler_service import run_stored_procedure
 from vendor_intelligence.database.get_vendor_performance import fetch_vendor_performance_range
 from vendor_intelligence.schemas.vendor_performance_schema import VendorPerformanceResponse
+from vendor_intelligence.services.vendor_recommendation import get_vendors_recommendation
+from vendor_intelligence.services.vendor_performance_summary import get_vendor_performance_scorecard
 
 # scheduler = None
 
@@ -44,27 +45,14 @@ def normalize_date_range(start_date, end_date):
     "/vendors/{vendor_id}/scorecard",
     response_model=List[VendorPerformanceResponse]
 )
-async def get_vendor_performance_summary(
+async def vendor_performance_scorecard(
     vendor_id: int,
     days: Optional[int] = Query(None, description="If date range isn't mentioned by default it will 30 days"),
     db: Session = Depends(get_db)
 ):
-    today = datetime.now().date()
+    scorecard_values = get_vendor_performance_scorecard(vendor_id=vendor_id, days=days, db=db)
 
-    if days == None:
-        days = 30
-
-    end_date = today - timedelta(days=0)   
-    start_date = today - timedelta(days=days)
-
-    values = fetch_vendor_performance_range(
-        vendor_id,
-        start_date,
-        end_date,
-        db
-    )
-
-    return values
+    return scorecard_values
 
 @app.get("/vendors/{vendor_id}/performance")
 async def get_vendor_performance(
@@ -114,3 +102,21 @@ async def get_vendor_performance(
 async def run_daily_scheduler(db: Session = Depends(get_db)): 
     insertion_message = await run_stored_procedure(db)
     return insertion_message
+
+@app.get("/vendors/recommend")
+async def search_recommendation(
+    from_city: str,
+    to_city: str,
+    shipment_weight: float,
+    # shipment_date: date,
+    db: Session = Depends(get_db)
+):
+    values = await get_vendors_recommendation(
+        from_city,
+        to_city,
+        shipment_weight,
+        # shipment_date,
+        db
+    )
+
+    return values
